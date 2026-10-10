@@ -1,0 +1,724 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MovieBook - Ticket Booking</title>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #0b1020;
+      color: #f5f7ff;
+      line-height: 1.6;
+    }
+
+    header {
+      background: #141b30;
+      padding: 18px 7%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #29324a;
+    }
+
+    .logo { color: #ff426d; font-size: 26px; font-weight: bold; }
+    header a { color: white; text-decoration: none; }
+
+    .hero {
+      text-align: center;
+      padding: 45px 20px;
+      background: linear-gradient(135deg, #222b52, #111629);
+    }
+
+    .hero h1 { font-size: clamp(28px, 5vw, 42px); }
+    .hero h1 span { color: #ff426d; }
+    .hero p { color: #c3c9dc; }
+
+    .container { width: 90%; max-width: 1150px; margin: 35px auto; }
+    h2 { margin-bottom: 20px; }
+
+    .movie-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 22px;
+    }
+
+    .movie-card {
+      background: #151d32;
+      border: 1px solid #29334d;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .poster-wrap {
+      height: 290px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(145deg, #36234f, #152b48);
+    }
+
+    .poster {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .poster-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .poster-fallback span { font-size: 48px; }
+    .poster-fallback strong { font-size: 23px; }
+
+    .movie-info { padding: 18px; }
+    .movie-info h3 { margin-bottom: 6px; }
+    .movie-info p { color: #b9c2d9; font-size: 14px; }
+    .price { color: #ff6487; font-weight: bold; font-size: 20px; margin: 10px 0; }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 7px;
+      padding: 12px 16px;
+      background: #ff426d;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    button:hover { background: #e52f59; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .movie-info button { width: 100%; }
+
+    .booking-box {
+      background: #151d32;
+      border: 1px solid #29334d;
+      border-radius: 14px;
+      padding: 25px;
+      margin-top: 40px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    label { display: block; margin-bottom: 7px; color: #dce2f3; }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 7px;
+      border: 1px solid #3a4662;
+      background: #0d1426;
+      color: white;
+      font-size: 15px;
+    }
+
+    .field { margin-bottom: 12px; }
+
+    .screen {
+      text-align: center;
+      margin: 30px auto 25px;
+      padding: 10px;
+      max-width: 430px;
+      color: #dce2f3;
+      background: #273653;
+      border-radius: 50% 50% 8px 8px;
+    }
+
+    .seat-grid {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(25px, 1fr));
+      gap: 9px;
+      max-width: 460px;
+      margin: 0 auto 20px;
+    }
+
+    .seat {
+      padding: 8px 0;
+      background: #263753;
+      border: 1px solid #526481;
+      color: white;
+      font-size: 12px;
+      border-radius: 5px;
+    }
+
+    .seat.selected { background: #19b87a; color: #071c13; }
+    .seat.booked { background: #646b7b; cursor: not-allowed; }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin: 15px 0 25px;
+      color: #c6cee0;
+      font-size: 13px;
+    }
+
+    .legend span { display: flex; align-items: center; gap: 6px; }
+    .legend i { width: 14px; height: 14px; border-radius: 3px; background: #263753; }
+    .legend .green { background: #19b87a; }
+    .legend .gray { background: #646b7b; }
+
+    .summary {
+      padding: 18px;
+      background: #0d1426;
+      border-radius: 8px;
+      margin: 20px 0;
+      overflow-wrap: anywhere;
+    }
+
+    .summary p { margin: 5px 0; }
+    .total { font-size: 24px; color: #ff6487; font-weight: bold; }
+
+    .payment-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin: 15px 0;
+    }
+
+    .payment-option {
+      background: #0d1426;
+      border: 1px solid #3a4662;
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+    }
+
+    .payment-option:has(input:checked) {
+      border: 2px solid #ff426d;
+      background: #25182b;
+    }
+
+    .payment-option input {
+      width: auto;
+      margin-right: 8px;
+      accent-color: #ff426d;
+    }
+
+    .payment-option label {
+      display: inline;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .payment-description {
+      color: #b9c2d9;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    .submit-btn { width: 100%; margin-top: 10px; padding: 15px; }
+
+    .message {
+      margin-top: 18px;
+      padding: 15px;
+      border-radius: 8px;
+      display: none;
+      overflow-wrap: anywhere;
+    }
+
+    .success { display: block; background: #123d30; border: 1px solid #1e8d67; color: #c3ffe7; }
+    .error { display: block; background: #451d2a; border: 1px solid #a83a57; color: #ffd5df; }
+
+    footer {
+      margin-top: 45px;
+      padding: 22px;
+      text-align: center;
+      background: #141b30;
+      color: #aeb8cf;
+    }
+
+    @media (max-width: 500px) {
+      .container { width: 92%; }
+      .booking-box { padding: 16px; }
+      .seat-grid { gap: 5px; }
+      .seat { padding: 7px 0; font-size: 11px; }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <a class="logo" href="#">MovieBook 🎬</a>
+  <a href="#booking">Book Tickets</a>
+</header>
+
+<section class="hero">
+  <h1>Your Movies. <span>Your Seats.</span></h1>
+  <p>Choose your movie, select your seats and book your tickets.</p>
+</section>
+
+<main class="container">
+  <h2>🎥 Now Showing</h2>
+
+  <section class="movie-grid">
+
+    <article class="movie-card">
+      <div class="poster-wrap">
+        <div class="poster-fallback"><span>🎬</span><strong>Avengers Endgame</strong></div>
+        <img class="poster"
+          src="https://upload.wikimedia.org/wikipedia/en/0/0d/Avengers_Endgame_poster.jpg"
+          alt="Avengers Endgame poster"
+          onload="this.previousElementSibling.style.display='none'"
+          onerror="this.style.display='none'">
+      </div>
+      <div class="movie-info">
+        <h3>Avengers Endgame</h3>
+        <p>Action | English | 181 minutes</p>
+        <div class="price">₹250 / ticket</div>
+        <button type="button" onclick="chooseMovie('Avengers Endgame')">Select Movie</button>
+      </div>
+    </article>
+
+    <article class="movie-card">
+      <div class="poster-wrap">
+        <div class="poster-fallback"><span>🎬</span><strong>RRR</strong></div>
+        <img class="poster"
+          src="https://www.impawards.com/intl/india/2022/posters/rrr.jpg"
+          alt="RRR poster"
+          onload="this.previousElementSibling.style.display='none'"
+          onerror="this.style.display='none'">
+      </div>
+      <div class="movie-info">
+        <h3>RRR</h3>
+        <p>Action | Telugu | 187 minutes</p>
+        <div class="price">₹200 / ticket</div>
+        <button type="button" onclick="chooseMovie('RRR')">Select Movie</button>
+      </div>
+    </article>
+
+    <article class="movie-card">
+      <div class="poster-wrap">
+        <div class="poster-fallback"><span>🎬</span><strong>Pushpa 2</strong></div>
+        <img class="poster"
+          src="https://www.impawards.com/intl/india/2024/posters/pushpa_the_rule__part_two.jpg"
+          alt="Pushpa 2 poster"
+          onload="this.previousElementSibling.style.display='none'"
+          onerror="this.style.display='none'">
+      </div>
+      <div class="movie-info">
+        <h3>Pushpa 2</h3>
+        <p>Action | Telugu | 200 minutes</p>
+        <div class="price">₹220 / ticket</div>
+        <button type="button" onclick="chooseMovie('Pushpa 2')">Select Movie</button>
+      </div>
+    </article>
+
+    <article class="movie-card">
+      <div class="poster-wrap">
+        <div class="poster-fallback"><span>🎬</span><strong>Devara</strong></div>
+        <img class="poster"
+          src="https://www.impawards.com/intl/india/2024/posters/devara_part_one.jpg"
+          alt="Devara poster"
+          onload="this.previousElementSibling.style.display='none'"
+          onerror="this.style.display='none'">
+      </div>
+      <div class="movie-info">
+        <h3>Devara</h3>
+        <p>Action | Telugu | 178 minutes</p>
+        <div class="price">₹180 / ticket</div>
+        <button type="button" onclick="chooseMovie('Devara')">Select Movie</button>
+      </div>
+    </article>
+
+  </section>
+
+  <section class="booking-box" id="booking">
+    <h2>🎟️ Book Your Tickets</h2>
+
+    <form id="bookingForm">
+      <div class="form-grid">
+        <div class="field">
+          <label for="customerName">Your Name</label>
+          <input id="customerName" type="text" placeholder="Enter your name" required>
+        </div>
+
+        <div class="field">
+          <label for="movieName">Movie</label>
+          <select id="movieName" required>
+            <option value="">Choose a movie</option>
+            <option>Avengers Endgame</option>
+            <option>RRR</option>
+            <option>Pushpa 2</option>
+            <option>Devara</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="showDate">Show Date</label>
+          <input id="showDate" type="date" required>
+        </div>
+
+        <div class="field">
+          <label for="showTime">Show Time</label>
+          <select id="showTime" required>
+            <option value="">Choose show time</option>
+            <option>10:00 AM</option>
+            <option>1:00 PM</option>
+            <option>6:00 PM</option>
+            <option>9:00 PM</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="tickets">Number of Tickets</label>
+          <select id="tickets" required>
+            <option value="1">1 Ticket</option>
+            <option value="2">2 Tickets</option>
+            <option value="3">3 Tickets</option>
+            <option value="4">4 Tickets</option>
+            <option value="5">5 Tickets</option>
+            <option value="6">6 Tickets</option>
+            <option value="7">7 Tickets</option>
+            <option value="8">8 Tickets</option>
+          </select>
+        </div>
+      </div>
+
+      <h3 style="margin-top:25px">Choose Your Seats</h3>
+      <div class="screen">SCREEN THIS WAY</div>
+      <div class="seat-grid" id="seatGrid"></div>
+
+      <div class="legend">
+        <span><i></i> Available</span>
+        <span><i class="green"></i> Selected</span>
+        <span><i class="gray"></i> Booked</span>
+      </div>
+
+      <div class="summary">
+        <p>Movie: <strong id="summaryMovie">Not selected</strong></p>
+        <p>Price per ticket: ₹<strong id="unitPrice">0</strong></p>
+        <p>Tickets: <strong id="summaryTickets">1</strong></p>
+        <p>Seats: <strong id="selectedSeatsText">None</strong></p>
+        <p class="total">Total Amount: ₹<span id="totalAmount">0.00</span></p>
+      </div>
+
+      <h3>💳 Select Payment Method</h3>
+
+      <div class="payment-options">
+        <div class="payment-option">
+          <input type="radio" id="online" name="paymentMethod"
+            value="ONLINE" required>
+          <label for="online">💳 Online Payment</label>
+          <p class="payment-description">Online payment demo option.</p>
+        </div>
+
+        <div class="payment-option">
+          <input type="radio" id="cash" name="paymentMethod" value="CASH">
+          <label for="cash">💵 Cash at Counter</label>
+          <p class="payment-description">Pay at the cinema counter.</p>
+        </div>
+      </div>
+
+      <button class="submit-btn" id="bookButton" type="submit">
+        Confirm Booking
+      </button>
+    </form>
+
+    <div id="message" class="message" role="status"></div>
+  </section>
+</main>
+
+<footer>
+  <p>© 2026 MovieBook | Movie Ticket Booking System</p>
+</footer>
+
+<script>
+  const API_URL = "http://localhost:8080/api/bookings";
+
+  const prices = {
+    "Avengers Endgame": 250,
+    "RRR": 200,
+    "Pushpa 2": 220,
+    "Devara": 180
+  };
+
+  const seatGrid = document.getElementById("seatGrid");
+  const movieInput = document.getElementById("movieName");
+  const dateInput = document.getElementById("showDate");
+  const timeInput = document.getElementById("showTime");
+  const ticketsInput = document.getElementById("tickets");
+  const message = document.getElementById("message");
+
+  let selectedSeats = new Set();
+  let bookedSeats = new Set();
+  let seatRequestId = 0;
+
+  const today = new Date();
+  const localToday = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0")
+  ].join("-");
+
+  dateInput.min = localToday;
+  dateInput.value = localToday;
+
+  function showMessage(text, type) {
+    message.textContent = text;
+    message.className = "message " + type;
+  }
+
+  function clearMessage() {
+    message.textContent = "";
+    message.className = "message";
+  }
+
+  function chooseMovie(movie) {
+    movieInput.value = movie;
+    selectedSeats.clear();
+    updateSummary();
+    loadSeats();
+
+    document.getElementById("booking").scrollIntoView({
+      behavior: "smooth"
+    });
+  }
+
+  function createSeatButtons() {
+    seatGrid.innerHTML = "";
+
+    for (let row = 0; row < 5; row++) {
+      for (let col = 1; col <= 8; col++) {
+        const seat = String.fromCharCode(65 + row) + col;
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "seat";
+        button.textContent = seat;
+        button.dataset.seat = seat;
+        button.addEventListener("click", () => toggleSeat(seat));
+
+        seatGrid.appendChild(button);
+      }
+    }
+
+    renderSeats();
+  }
+
+  function renderSeats() {
+    document.querySelectorAll(".seat").forEach(button => {
+      const seat = button.dataset.seat;
+
+      button.classList.remove("selected", "booked");
+
+      if (bookedSeats.has(seat)) {
+        button.classList.add("booked");
+        button.disabled = true;
+      } else {
+        button.disabled = false;
+        if (selectedSeats.has(seat)) {
+          button.classList.add("selected");
+        }
+      }
+    });
+  }
+
+  function toggleSeat(seat) {
+    clearMessage();
+
+    if (bookedSeats.has(seat)) return;
+
+    if (selectedSeats.has(seat)) {
+      selectedSeats.delete(seat);
+    } else {
+      if (selectedSeats.size >= Number(ticketsInput.value)) {
+        showMessage("Select only the number of seats matching your tickets.", "error");
+        return;
+      }
+
+      selectedSeats.add(seat);
+    }
+
+    renderSeats();
+    updateSummary();
+  }
+
+  function updateSummary() {
+    const movie = movieInput.value;
+    const tickets = Number(ticketsInput.value);
+    const unitPrice = prices[movie] || 0;
+    const total = unitPrice * tickets;
+
+    document.getElementById("summaryMovie").textContent = movie || "Not selected";
+    document.getElementById("unitPrice").textContent = unitPrice;
+    document.getElementById("summaryTickets").textContent = tickets;
+    document.getElementById("selectedSeatsText").textContent =
+      [...selectedSeats].sort().join(", ") || "None";
+    document.getElementById("totalAmount").textContent = total.toFixed(2);
+  }
+
+  async function loadSeats() {
+    const movie = movieInput.value;
+    const date = dateInput.value;
+    const time = timeInput.value;
+    const requestId = ++seatRequestId;
+
+    selectedSeats.clear();
+    bookedSeats.clear();
+    renderSeats();
+    updateSummary();
+
+    if (!movie || !date || !time) return;
+
+    try {
+      const params = new URLSearchParams({
+        movieName: movie,
+        showDate: date,
+        showTime: time
+      });
+
+      const response = await fetch(API_URL + "/seats?" + params);
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      if (requestId !== seatRequestId) return;
+
+      if (Array.isArray(data)) {
+        bookedSeats = new Set(data.map(String));
+      }
+
+      renderSeats();
+      updateSummary();
+    } catch (error) {
+      console.log("Booked seats could not be loaded:", error);
+    }
+  }
+
+  movieInput.addEventListener("change", () => {
+    selectedSeats.clear();
+    updateSummary();
+    loadSeats();
+  });
+
+  dateInput.addEventListener("change", loadSeats);
+  timeInput.addEventListener("change", loadSeats);
+
+  ticketsInput.addEventListener("change", () => {
+    while (selectedSeats.size > Number(ticketsInput.value)) {
+      selectedSeats.delete([...selectedSeats].pop());
+    }
+
+    renderSeats();
+    updateSummary();
+  });
+
+  document.querySelectorAll('input[name="paymentMethod"]').forEach(input => {
+    input.addEventListener("change", clearMessage);
+  });
+
+  document.getElementById("bookingForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    clearMessage();
+
+    const customerName = document.getElementById("customerName").value.trim();
+    const movieName = movieInput.value;
+    const tickets = Number(ticketsInput.value);
+    const showDate = dateInput.value;
+    const showTime = timeInput.value;
+    const paymentMethod =
+      document.querySelector('input[name="paymentMethod"]:checked')?.value;
+
+    if (!customerName || !movieName || !showDate || !showTime || !paymentMethod) {
+      showMessage("Please fill in all details and select a payment method.", "error");
+      return;
+    }
+
+    if (showDate < localToday) {
+      showMessage("Please select today or a future date.", "error");
+      return;
+    }
+
+    if (selectedSeats.size !== tickets) {
+      showMessage("Please select exactly " + tickets + " seat(s).", "error");
+      return;
+    }
+
+    const total = prices[movieName] * tickets;
+
+    // ONLINE is a demo choice only. This code does not charge money.
+    // CASH means the customer intends to pay at the cinema counter.
+    const booking = {
+      customerName,
+      movieName,
+      tickets,
+      showDate,
+      showTime,
+      selectedSeats: [...selectedSeats].sort().join(", ")
+    };
+
+    const button = document.getElementById("bookButton");
+    button.disabled = true;
+    button.textContent = "Processing Booking...";
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(booking)
+      });
+
+      if (!response.ok) {
+        const details = await response.text();
+        throw new Error(details || "Booking failed.");
+      }
+
+      const result = await response.json();
+
+      const paymentText = paymentMethod === "CASH"
+        ? "Cash at Counter - payment pending"
+        : "Online Payment - demo only, no money charged";
+
+      showMessage(
+        "Booking successful! " +
+        "Booking ID: " + result.id +
+        " | Movie: " + result.movieName +
+        " | Seats: " + (result.selectedSeats || booking.selectedSeats) +
+        " | Total: ₹" + (result.totalAmount ?? total) +
+        " | Payment: " + paymentText,
+        "success"
+      );
+
+      selectedSeats.clear();
+      await loadSeats();
+
+    } catch (error) {
+      console.error(error);
+      showMessage(
+        "Booking failed. Check that Spring Boot is running at " +
+        API_URL + ". " + error.message,
+        "error"
+      );
+    } finally {
+      button.disabled = false;
+      button.textContent = "Confirm Booking";
+    }
+  });
+
+  createSeatButtons();
+  updateSummary();
+</script>
+
+</body>
+</html>
